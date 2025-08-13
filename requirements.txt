@@ -11,3 +11,7 @@ duckdb>=0.10.0
 
 # Optional validation/reporting
 great-expectations>=0.18.12
+
+# Orchestration
+dagster>=1.7.0
+dagster-webserver>=1.7.0
