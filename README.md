@@ -11,7 +11,7 @@ We'll combine this set of tool and a data platform to automate code generation a
 
 1. Data contract 
 2. Data contract validation & artifacts generation
-3. DLTHub code for data ingestion
-4. DDL for catalogs
+3. DDL for catalogs
+4. DLTHub code for data ingestion
 5. Great Expectations code
 6. Data processing 

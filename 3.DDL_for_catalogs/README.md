@@ -1,4 +1,4 @@
-# 4. DDL for catalogs
+# 3. DDL for catalogs
 
 Purpose
 - Generate DDL to register datasets in data catalogs and/or the warehouse, based on contracts.
