@@ -14,4 +14,4 @@ We'll combine this set of tool and a data platform to automate code generation a
 3. DLTHub code for data ingestion
 4. DDL for catalogs
 5. Great Expectations code
-6. Data transformation 
+6. Data processing 
