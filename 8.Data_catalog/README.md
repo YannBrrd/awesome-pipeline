@@ -8,15 +8,30 @@ Prérequis
 
 Démarrage rapide (PowerShell)
 - Démarrer:
+  
+  ```powershell
   .\start.ps1
+  ```
 - Vérifier l’état:
+  
+  ```powershell
   .\status.ps1
+  ```
 - Suivre les logs serveur:
+  
+  ```powershell
   .\logs.ps1
+  ```
 - Arrêter (conserver données):
+  
+  ```powershell
   .\stop.ps1
+  ```
 - Réinitialiser (supprime volumes):
+  
+  ```powershell
   .\reset.ps1
+  ```
 
 Accès UI
 - http://localhost:8585

@@ -1,17 +1,20 @@
-# 5. Great Expectations (GX) code
+# 5. Great Expectations (GX) code (via Data Contracts CLI)
 
 Purpose
-- Define and run expectation suites derived from the contracts.
+- Generate GX expectation suites from the data contract using Data Contracts CLI and store them here.
 
-What goes here
-- GX project structure: expectation suites, checkpoints, data docs config.
-- Mappings from contract quality rules to GX expectations.
+Prerequisites
+- data-contract-cli installed (e.g., pipx install data-contract-cli)
 
-Inputs
-- Quality rules and schemas from `../2.Validation/`.
+Usage (PowerShell)
+- Generate suites from contract:
+  
+	```powershell
+	data-contract-cli gx --contract .\1.Data_contract\olist_mini\contract.yaml --out .\5.GX_code\suites_cli
+	```
 
 Outputs
-- Validation results and Data Docs for CI/observability.
+- GX suites under `5.GX_code/suites_cli/` ready to be wired into a GX project (checkpoints, data docs).
 
 Notes
-- Run GX pre/post-ingestion and in transformations to enforce trust by design.
+- This replaces the previous custom suite generator. You can still run GX pre/post-ingestion to enforce quality.

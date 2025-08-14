@@ -18,7 +18,6 @@ def run(cmd: list[str], env: dict | None = None) -> None:
 class IngestionConfig(Config):
     run_ingestion: bool = True
     data_dir: str = "data/olist_mini"
-    destination: str = "duckdb"
     dataset: str = "raw_olist"
 
 
@@ -38,20 +37,22 @@ def validate_contract(_dep: bool) -> bool:
 
 @op(ins={"_dep": In(bool)}, out=Out(bool))
 def generate_ddl(_dep: bool) -> bool:
-    run(["py", "4.DDL_for_catalogs/generate_ddl.py"])
+    # Use Data Contracts CLI to generate Databricks UC DDL
+    run(["data-contract-cli", "ddl", "--dialect", "databricks", "--contract", str(CONTRACT), "--out", "4.DDL_for_catalogs/ddl_cli"]) 
     return True
 
 
 @op(ins={"_dep": In(bool)}, out=Out(bool))
 def generate_gx_suites(_dep: bool) -> bool:
-    run(["py", "5.GX_code/generate_gx_suites.py"])
+    # Use Data Contracts CLI to generate GX suites
+    run(["data-contract-cli", "gx", "--contract", str(CONTRACT), "--out", "5.GX_code/suites_cli"]) 
     return True
 
 
 @op(ins={"_dep": In(bool)}, out=Out(Path))
 def generate_dlt_pipeline(_dep: bool) -> Path:
-    out_py = ROOT / "3.Ingestion/pipelines/contract_pipeline.py"
-    run(["py", "3.Ingestion/generate_dlt_pipeline.py", str(CONTRACT), str(out_py)])
+    out_py = ROOT / "3.Ingestion/pipelines/contract_databricks_pipeline.py"
+    run(["py", "3.Ingestion/generate_dlt_pipeline_databricks.py", str(CONTRACT)])
     return out_py
 
 
@@ -59,8 +60,9 @@ def generate_dlt_pipeline(_dep: bool) -> Path:
 def ingest(pipe_path: Path, cfg: IngestionConfig) -> bool:
     env = {
         "OLIST_DATA_DIR": cfg.data_dir,
-        "DLT_DESTINATION": cfg.destination,
         "DLT_DATASET": cfg.dataset,
+        # require Databricks envs to be present in user environment
+        # DATABRICKS_SERVER_HOSTNAME, DATABRICKS_HTTP_PATH, DATABRICKS_ACCESS_TOKEN
     }
     if cfg.run_ingestion:
         run(["py", str(pipe_path)], env=env)

@@ -37,7 +37,7 @@ A concise backlog to take this pipeline from demo to robust.
 - [ ] Generate DROP/CREATE and ALTER migration stubs
 
 ## Great Expectations (5.GX_code)
-- [ ] Scaffold a GX project (datasource, checkpoint, data docs) targeting DuckDB
+// [ ] Scaffold a GX project (datasource, checkpoint, data docs) targeting Databricks tables
 - [ ] Generate and run checkpoints per table pre/post load
 - [ ] Parameterize tolerance (mostly) via env and persist in checkpoint configs
 - [ ] Translate cross-table SQL check into a GX validation (custom expectation or QueryExpectation)
@@ -50,7 +50,7 @@ A concise backlog to take this pipeline from demo to robust.
 - [ ] Add a daily schedule and a file sensor for new CSV drops
 - [ ] Split into two jobs: build (validate+DDL+GX+codegen) and ingest (per dataset)
 - [ ] Add run config schema (data_dir, destination, dataset) and defaults via resources
-- [ ] Persist Dagster run storage and event logs (e.g., sqlite/duckdb)
+// [ ] Persist Dagster run storage and event logs (e.g., sqlite)
 
 ## CI/CD
 - [ ] GitHub Actions: lint/type-check, validate contract, generate DDL, run unit tests

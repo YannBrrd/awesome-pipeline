@@ -7,7 +7,6 @@ pandas>=2.2.0
 pyarrow>=15.0.0
 
 dlt>=0.4.7
-duckdb>=0.10.0
 # Optional destination connector for Databricks
 # Requires a Databricks SQL Warehouse and env vars: DATABRICKS_HOST, DATABRICKS_HTTP_PATH, DATABRICKS_TOKEN
 databricks-sql-connector>=3.1.0
@@ -18,3 +17,6 @@ great-expectations>=0.18.12
 # Orchestration
 dagster>=1.7.0
 dagster-webserver>=1.7.0
+
+# Note: Data Contracts CLI is a separate tool; install via pipx or pip if needed
+# data-contract-cli

@@ -13,7 +13,7 @@ import dlt
 import pandas as pd
 
 DATA_DIR = Path(os.environ.get("OLIST_DATA_DIR", "data/olist_mini")).resolve()
-DESTINATION = os.environ.get("DLT_DESTINATION", "duckdb")
+DESTINATION = os.environ.get("DLT_DESTINATION", "databricks")
 DATASET = os.environ.get("DLT_DATASET", "raw_olist")
 CHUNKSIZE = int(os.environ.get("INGEST_CHUNKSIZE", "50000"))
 
