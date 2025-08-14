@@ -52,3 +52,38 @@ Ce projet démontre une chaîne de valeur “Data Trust by Design” complète, 
 - Great Expectations: https://greatexpectations.io/
 - Dagster: https://dagster.io/
 - OpenMetadata: https://open-metadata.org/
+
+## Diagramme de flux (Mermaid)
+
+```mermaid
+flowchart TD
+  A["Contrat de données<br/>(1.Data_contract)"] --> B["Validation & Compilation<br/>(2.Validation)"]
+
+  B --> C["DDL multi-dialectes<br/>(4.DDL_for_catalogs)"]
+  B --> D["Suites GX générées<br/>(5.GX_code)"]
+  B --> E["Code dlt généré<br/>(3.Ingestion)"]
+
+  subgraph ING[Ingestion]
+    direction LR
+    E --> F1["Ingestion DuckDB"]
+    E --> F2["Ingestion Databricks"]
+  end
+
+  F1 --> G["Data processing<br/>(6.Data_processing)"]
+  F2 --> G
+
+  C --> H["Entrepôt / Catalogue<br/>(UC / BigQuery / Snowflake / Postgres)"]
+  G --> I["OpenMetadata (Data Catalog)<br/>(8.Data_catalog)"]
+  H --> I
+
+  subgraph ORCH["Orchestrateur (Dagster)"]
+    direction TB
+    O1 -.-> A
+    O2 -.-> B
+    O3 -.-> C
+    O4 -.-> D
+    O5 -.-> E
+    O6 -.-> F1
+    O7 -.-> F2
+  end
+```

@@ -2,7 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from dagster import Definitions, job, op, In, Out, Config
+from dagster import Definitions, job, op, In, Out, Config, Failure
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "1.Data_contract/olist_mini/contract.yaml"
@@ -23,7 +23,15 @@ class IngestionConfig(Config):
 
 
 @op(out=Out(bool))
-def validate_contract() -> bool:
+def check_contract_exists() -> bool:
+    """Fail-fast if the data contract file does not exist."""
+    if not CONTRACT.exists():
+        raise Failure(f"Data contract not found at: {CONTRACT}")
+    return True
+
+
+@op(ins={"_dep": In(bool)}, out=Out(bool))
+def validate_contract(_dep: bool) -> bool:
     run(["py", "2.Validation/contract_validator.py", str(CONTRACT)])
     return True
 
@@ -61,7 +69,8 @@ def ingest(pipe_path: Path, cfg: IngestionConfig) -> bool:
 
 @job
 def build_and_ingest():
-    v = validate_contract()
+    c = check_contract_exists()
+    v = validate_contract(c)
     d = generate_ddl(v)
     g = generate_gx_suites(d)
     p = generate_dlt_pipeline(g)
