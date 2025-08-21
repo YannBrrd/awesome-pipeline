@@ -6,12 +6,13 @@ Purpose
 Prerequisites
 - data-contract-cli installed (e.g., pipx install data-contract-cli)
 
-Usage (PowerShell)
-- Generate suites from contract:
+Usage (Bash/Shell)
+- Generate suites from contract using the shell script:
+
   
-	```powershell
-	data-contract-cli gx --contract .\1.Data_contract\olist_mini\contract.yaml --out .\5.GX_code\suites_cli
-	```
+  ```bash
+  data-contract-cli gx --contract ./1.Data_contract/olist_mini/contract.yaml --out ./5.GX_code/suites_cli
+  ```
 
 Outputs
 - GX suites under `5.GX_code/suites_cli/` ready to be wired into a GX project (checkpoints, data docs).

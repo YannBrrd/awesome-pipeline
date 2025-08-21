@@ -19,4 +19,5 @@ dagster>=1.7.0
 dagster-webserver>=1.7.0
 
 # Note: Data Contracts CLI is a separate tool; install via pipx or pip if needed
-# data-contract-cli
+datacontract-cli[databricks,dbt]
+
