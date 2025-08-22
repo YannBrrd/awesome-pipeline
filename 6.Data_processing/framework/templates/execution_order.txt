@@ -1,0 +1,22 @@
+# SQL Transformation Configuration
+# Defines the order of SQL script execution
+
+# Each line represents a SQL script to be executed in order
+# Lines starting with # are comments and will be ignored
+# Relative paths are resolved from the sql scripts directory
+
+# 1. Data preparation scripts
+01_create_staging_tables.sql
+02_clean_raw_data.sql
+
+# 2. Data transformation scripts  
+03_customer_aggregations.sql
+04_order_metrics.sql
+05_customer_metrics.sql
+
+# 3. Data quality validation scripts (optional - GX handles this)
+# 06_validate_outputs.sql
+
+# 4. Finalization scripts
+07_create_indexes.sql
+08_update_metadata.sql

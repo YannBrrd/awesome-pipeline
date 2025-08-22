@@ -1,0 +1,73 @@
+# dbt Project Configuration Template
+# For use with the DQ Transformation Framework
+
+name: 'my_dbt_project'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'my_dbt_project'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Model configurations
+models:
+  my_dbt_project:
+    # Configuration for all models in this project
+    +materialized: table
+    
+    # Staging models
+    staging:
+      +materialized: view
+      +schema: staging
+    
+    # Intermediate models
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    
+    # Mart models (final outputs)
+    marts:
+      +materialized: table
+      +schema: marts
+
+# Test configurations
+tests:
+  +store_failures: true
+  +schema: test_failures
+
+# Seed configurations
+seeds:
+  my_dbt_project:
+    +schema: seeds
+
+# Variables that can be used in models
+vars:
+  # Date variables
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+  
+  # Environment
+  environment: 'dev'
+  
+  # Custom variables for your transformations
+  include_test_data: true
+
+# Documentation configuration
+docs:
+  generate: true
+  node_colors:
+    seed: '#E8F5E8'
+    model: '#D6EAF8'
+    test: '#FADBD8'
