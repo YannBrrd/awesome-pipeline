@@ -1,4 +1,28 @@
-# awesome-pipeline
+# a## Description
+
+## Project structure
+
+1. Data contract (`1.Data_contract/`)
+2. Validation & artifacts (`2.Validation/`)
+3. DLTHub Ingestion (`3.Ingestion/`)
+4. DDL for catalogs (`4.DDL_for_catalogs/`)
+5. Great Expectations (`5.GX_code/`)
+6. Data processing (`6.Data_processing/`)
+7. Dagster Orchestrator (`7.Orchestrator/`)
+8. Data Catalog (OpenMetadata) (`8.Data_catalog/`)
+
+## Typical workflow
+1) Generate a small synthetic dataset (Olist mini) and validate the contract
+2) Generate DDL, GX suites and dlt pipeline from the contract
+3) Load data into Databricks (SQL Warehouse) with dlt
+4) Orchestrate the step sequence with Dagster
+5) Launch OpenMetadata Data Catalog locally and configure ingestionsnstrates a complete "Data Trust by Design" value chain, from data contract definition to orchestration and catalog publication:
+- Define producer contracts (schema, quality, SLA, security)
+- Validate and compile these contracts to generate artifacts (JSON schemas, DDL, test suites)
+- Generate ingestion code (dlt) with expectations (not_null, unique, min/enum/regex)
+- Execute quality checks (Great Expectations) and cross-cutting checks
+- Publish schemas to warehouse/catalog
+- Orchestrate everything (Dagster)peline
 Automated Pipeline & Data Trust by Design
 
 ## Description
@@ -29,31 +53,31 @@ Ce projet démontre une chaîne de valeur “Data Trust by Design” complète, 
 4) Orchestrer l’enchaînement des étapes avec Dagster
 5) Lancer le Data Catalog OpenMetadata en local et configurer des ingestions
 
-## Démarrage rapide (PowerShell)
-- Installer dépendances Python:
+## Quick start (PowerShell)
+- Install Python dependencies:
   
   ```powershell
   py -m pip install -r requirements.txt
   ```
 
-- Générer données + valider contrat:
+- Generate data + validate contract:
   
   ```powershell
   py .\scripts\generate_olist_mini.py
   py .\2.Validation\contract_validator.py .\1.Data_contract\olist_mini\contract.yaml
   ```
 
-- Générer DDL & suites GX via Data Contracts CLI + pipeline dlt:
+- Generate DDL & GX suites via Data Contracts CLI + dlt pipeline:
   
   ```powershell
-  # Installer le CLI (une fois) – voir doc officielle du projet
+  # Install CLI (once) – see official project documentation
   # pipx install data-contract-cli
   data-contract-cli ddl --dialect databricks --contract .\1.Data_contract\olist_mini\contract.yaml --out .\4.DDL_for_catalogs\ddl_cli
   data-contract-cli gx --contract .\1.Data_contract\olist_mini\contract.yaml --out .\5.GX_code\suites_cli
   py .\3.Ingestion\generate_dlt_pipeline_databricks.py .\1.Data_contract\olist_mini\contract.yaml
   ```
 
-- Exécuter ingestion (Databricks SQL Warehouse):
+- Execute ingestion (Databricks SQL Warehouse):
   
   ```powershell
   $env:OLIST_DATA_DIR = "data/olist_mini"
@@ -63,38 +87,38 @@ Ce projet démontre une chaîne de valeur “Data Trust by Design” complète, 
   $env:DATABRICKS_ACCESS_TOKEN = "<token>"
   py .\3.Ingestion\pipelines\contract_databricks_pipeline.py
   ```
-- Orchestrateur Dagster (UI):
+- Dagster Orchestrator (UI):
   
   ```powershell
   dagster dev -m 7.Orchestrator.orchestrator
   ```
 
-- Data Catalog OpenMetadata:
+- OpenMetadata Data Catalog:
   
   ```powershell
   cd .\8.Data_catalog; cp .env.example .env; docker compose up -d; start http://localhost:8585
   ```
 
-## Liens
+## Links
 - Data Contracts: https://datacontract.com/
 - DLTHub: https://dlthub.com/
 - Great Expectations: https://greatexpectations.io/
 - Dagster: https://dagster.io/
 - OpenMetadata: https://open-metadata.org/
 
-## Diagramme de flux (Mermaid)
+## Flow diagram (Mermaid)
 
 ```mermaid
 flowchart TD
-  A["Contrat de données<br/>(1.Data_contract)"] --> B["Validation & Compilation<br/>(2.Validation)"]
+  A["Data Contract<br/>(1.Data_contract)"] --> B["Validation & Compilation<br/>(2.Validation)"]
 
   B --> C["DDL (Databricks UC) via CLI<br/>(4.DDL_for_catalogs)"]
-  B --> D["Suites GX via CLI<br/>(5.GX_code)"]
-  B --> E["Code dlt généré (Databricks)<br/>(3.Ingestion)"]
+  B --> D["GX Suites via CLI<br/>(5.GX_code)"]
+  B --> E["Generated dlt code (Databricks)<br/>(3.Ingestion)"]
 
   subgraph ING[Ingestion]
     direction LR
-    E --> F2["Ingestion Databricks"]
+    E --> F2["Databricks Ingestion"]
   end
 
   F2 --> G
@@ -103,7 +127,7 @@ flowchart TD
   G --> I["OpenMetadata (Data Catalog)<br/>(8.Data_catalog)"]
   H --> I
 
-  subgraph ORCH["Orchestrateur (Dagster)"]
+  subgraph ORCH["Orchestrator (Dagster)"]
     direction TB
     O1 -.-> A
     O2 -.-> B

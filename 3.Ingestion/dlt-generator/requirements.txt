@@ -1,0 +1,14 @@
+dlt>=0.5
+pydantic>=2.6
+pyyaml
+questionary
+jinja2
+requests
+
+# Destinations optionnelles: installez uniquement si utilisées
+# BigQuery:
+# google-cloud-bigquery
+# Snowflake:
+# snowflake-connector-python
+# Databricks (SQL Warehouse):
+# databricks-sql-connector

@@ -1,41 +1,47 @@
 # 8. Data Catalog (OpenMetadata)
 
-But: fournir un catalogue de données local avec OpenMetadata pour explorer schémas, lineage et qualité.
+PurIntegration with this repo
+- The DDL generated in `4.DDL_for_catalogs/ddl/` can be applied to your warehouse/source, then registered in OpenMetadata via its ingestion connectors (not included here).
+- You can declare database connections and schedule ingestions from the UI (Ingestion).
 
-Prérequis
+Notes
+- This docker-compose is for local demo only (Elasticsearch without auth, single-broker Kafka).
+- For production, follow the official documentation: https://open-metadata.org/docs/rovide a local data catalog with OpenMetadata to explore schemas, lineage and quality.
+
+Prerequisites
 - Docker Desktop
-- ~4–6 Go de RAM disponible pour le stack (ES, MySQL, Kafka, OM)
+- ~4–6 GB of available RAM for the stack (ES, MySQL, Kafka, OM)
 
-Démarrage rapide (PowerShell)
-- Démarrer:
+Quick start (PowerShell)
+- Start:
   
   ```powershell
   .\start.ps1
   ```
-- Vérifier l’état:
+- Check status:
   
   ```powershell
   .\status.ps1
   ```
-- Suivre les logs serveur:
+- Follow server logs:
   
   ```powershell
   .\logs.ps1
   ```
-- Arrêter (conserver données):
+- Stop (preserve data):
   
   ```powershell
   .\stop.ps1
   ```
-- Réinitialiser (supprime volumes):
+- Reset (delete volumes):
   
   ```powershell
   .\reset.ps1
   ```
 
-Accès UI
+UI Access
 - http://localhost:8585
-- Identifiants: admin@open-metadata.org / admin
+- Credentials: admin@open-metadata.org / admin
 
 Intégration avec ce repo
 - Le DDL généré dans `4.DDL_for_catalogs/ddl/` peut être appliqué à votre entrepôt/source, puis enregistré dans OpenMetadata via ses connecteurs d’ingestion (non inclus ici).

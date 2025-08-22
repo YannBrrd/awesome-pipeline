@@ -1,0 +1,47 @@
+# Pipeline dlt généré à partir d'un data contract
+
+Pipeline: **{{ c.pipeline.name }}**  
+Source: {{ c.source.base_url }}  
+Destination: {{ c.destination.type }}{% if c.destination.type == "bigquery" %} (dataset: {{ c.destination.dataset }}){% else %} (schema: {{ c.destination.schema }}){% endif %}
+
+## Prérequis
+- Python 3.11+
+- `pip install -r requirements.txt`
+- Variables d'environnement renseignées (voir `.env.example`)
+- Connecteurs optionnels si utilisés:
+  - BigQuery: `pip install google-cloud-bigquery`
+  - Snowflake: `pip install snowflake-connector-python`
+  - Databricks: `pip install databricks-sql-connector`
+
+## Configuration
+Les tables/ressources configurées dans ce pipeline :
+{% for table_name, table_config in c.schema.items() -%}
+- **{{ table_name }}**{% if table_config.primary_key %} (clé primaire: {{ table_config.primary_key | join(", ") }}){% endif %}
+{% endfor %}
+
+## Usage
+1. Complétez votre `contract.yaml` (ou laissez des champs manquants: l'outil vous les demandera).
+2. Générez les fichiers:
+   ```bash
+   python generate.py --contract examples/contract.yaml --out build
+   ```
+3. Renseignez vos variables d'environnement (voir `build/.env.example`).
+4. Exécutez le pipeline:
+   ```bash
+   python build/ingest.py
+   ```
+
+## Notes
+- Le script lit `contract.yaml` au runtime (copié dans `build/`).
+- Les règles simples (nullable, in_set, min/max) sont appliquées avant le chargement.
+- Configurez `destination.write_disposition` et `destination.merge_key` (si `merge`) dans le contrat.
+- BigQuery utilise `destination.dataset`; Postgres/DuckDB/Snowflake/Databricks utilisent `destination.schema`.
+
+## Authentification API
+{% if c.source.auth.kind == "bearer_token" -%}
+Ce pipeline utilise l'authentification Bearer Token. Définissez la variable d'environnement `{{ c.source.auth.token_env }}`.
+{% elif c.source.auth.kind == "basic" -%}
+Ce pipeline utilise l'authentification Basic. Username: `{{ c.source.auth.username }}`, mot de passe via `{{ c.source.auth.password_env }}`.
+{% else -%}
+Ce pipeline n'utilise pas d'authentification.
+{% endif %}

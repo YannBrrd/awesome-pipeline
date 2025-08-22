@@ -1,0 +1,42 @@
+version: "1.0"
+pipeline:
+  name: "ecommerce-orders-bigquery"
+source:
+  type: api
+  base_url: "https://api.shop.example.com/v1/orders"
+  items_path: "data.orders"
+  auth:
+    kind: bearer_token
+    token_env: SHOP_API_TOKEN
+  incremental:
+    mode: none
+    pagination:
+      type: page
+      page_param: page
+      start: 1
+      limit_param: limit
+      page_size: 50
+destination:
+  type: bigquery
+  dataset: raw_ecommerce
+  write_disposition: append
+schema:
+  orders:
+    primary_key: [order_id]
+    columns:
+      order_id: {type: bigint, nullable: false}
+      customer_id: {type: bigint, nullable: false}
+      status: {type: text, nullable: false, in_set: ["pending", "paid", "shipped", "delivered", "cancelled"]}
+      total_amount: {type: decimal, nullable: false, min: 0, max: 100000}
+      currency: {type: text, nullable: false, in_set: ["EUR", "USD", "GBP"]}
+      created_at: {type: timestamp, nullable: false}
+      updated_at: {type: timestamp, nullable: true}
+  order_items:
+    primary_key: [order_id, item_id]
+    columns:
+      order_id: {type: bigint, nullable: false}
+      item_id: {type: bigint, nullable: false}
+      product_id: {type: bigint, nullable: false}
+      quantity: {type: int, nullable: false, min: 1, max: 999}
+      unit_price: {type: decimal, nullable: false, min: 0}
+      total_price: {type: decimal, nullable: false, min: 0}

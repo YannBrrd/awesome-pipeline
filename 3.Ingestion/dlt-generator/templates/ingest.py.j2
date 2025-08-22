@@ -1,0 +1,189 @@
+#!/usr/bin/env python
+"""
+Script d'ingestion dlt généré automatiquement à partir d'un data contract.
+Supporte destinations: duckdb | postgres | bigquery | snowflake | databricks
+Source: API HTTP (GET), pagination simple par page, expectations basiques.
+"""
+from __future__ import annotations
+
+import os
+from typing import Any, Dict, Iterable, List
+
+import dlt
+import requests
+import yaml
+
+CONTRACT_PATH = os.environ.get("CONTRACT_PATH", "contract.yaml")
+
+def load_contract(path: str) -> Dict[str, Any]:
+    """Charge le contrat depuis un fichier YAML."""
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+def get_headers(c: Dict[str, Any]) -> Dict[str, str]:
+    """Construit les headers d'authentification selon la config."""
+    auth = c["source"]["auth"]
+    if auth["kind"] == "bearer_token":
+        token = os.environ.get(auth["token_env"])
+        if not token:
+            raise RuntimeError(f"Variable d'env manquante: {auth['token_env']}")
+        return {"Authorization": f"Bearer {token}"}
+    if auth["kind"] == "basic":
+        # Username est dans le contrat, le mot de passe via env
+        password = os.environ.get(auth["password_env"])
+        if not password:
+            raise RuntimeError(f"Variable d'env manquante: {auth['password_env']}")
+        import base64
+        credentials = f"{auth['username']}:{password}"
+        encoded = base64.b64encode(credentials.encode()).decode()
+        return {"Authorization": f"Basic {encoded}"}
+    return {}
+
+def get_dataset_name(dest: Dict[str, Any]) -> str:
+    """Retourne le nom du dataset/schema selon la destination."""
+    if dest["type"] == "bigquery":
+        return dest["dataset"]
+    return dest["schema"]
+
+def iter_items(obj: Any, path: str | None) -> Iterable[Dict[str, Any]]:
+    """Extrait la liste d'items via un chemin JSON simple (dot/brackets) si fourni."""
+    if path:
+        try:
+            import jmespath  # si présent
+            res = jmespath.search(path, obj)
+            if isinstance(res, list):
+                return res
+        except Exception:
+            pass
+        # fallback: chemin plat "a.b.c"
+        cur = obj
+        for part in path.replace("[", ".").replace("]", "").split("."):
+            if not part:
+                continue
+            cur = cur.get(part) if isinstance(cur, dict) else None
+            if cur is None:
+                break
+        if isinstance(cur, list):
+            return cur
+    # si pas de path défini, deviner: si obj est liste => obj, sinon cherche "items" sinon singleton
+    if isinstance(obj, list):
+        return obj
+    if isinstance(obj, dict):
+        if isinstance(obj.get("items"), list):
+            return obj["items"]
+        return [obj]
+    return []
+
+def apply_expectations(rec: Dict[str, Any], col_spec: Dict[str, Any]) -> bool:
+    """Applique les expectations simples (nullable, in_set, min/max) sur un enregistrement."""
+    for col, spec in col_spec.items():
+        v = rec.get(col)
+        if v is None and not spec.get("nullable", True):
+            return False
+        if v is not None:
+            if "in_set" in spec and v not in spec["in_set"]:
+                return False
+            if "min" in spec:
+                try:
+                    if float(v) < float(spec["min"]):
+                        return False
+                except Exception:
+                    return False
+            if "max" in spec:
+                try:
+                    if float(v) > float(spec["max"]):
+                        return False
+                except Exception:
+                    return False
+    return True
+
+def fetch_records(c: Dict[str, Any], col_spec: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
+    """Récupère les enregistrements depuis l'API avec pagination et expectations."""
+    base_url = c["source"]["base_url"]
+    headers = get_headers(c)
+    incr = c["source"]["incremental"]
+    pag = incr.get("pagination", {"type": "none"})
+    items_path = c["source"].get("items_path")
+
+    def one_page(url: str, params: Dict[str, Any] | None = None):
+        r = requests.get(url, headers=headers, params=params or {}, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        for item in iter_items(data, items_path):
+            if apply_expectations(item, col_spec):
+                yield item
+
+    if pag.get("type") == "page":
+        page = pag.get("start", 1)
+        limit_param = pag.get("limit_param")
+        page_size = pag.get("page_size")
+        page_param = pag.get("page_param") or "page"
+        while True:
+            params = {page_param: page}
+            if limit_param and page_size:
+                params[limit_param] = page_size
+            count = 0
+            for rec in one_page(base_url, params=params):
+                count += 1
+                yield rec
+            if count == 0:
+                break
+            page += 1
+    else:
+        yield from one_page(base_url)
+
+def main():
+    """Point d'entrée principal du script d'ingestion."""
+    c = load_contract(CONTRACT_PATH)
+    dest = c["destination"]
+    pipeline_name = c["pipeline"]["name"]
+
+    dataset_name = get_dataset_name(dest)
+    pipeline = dlt.pipeline(
+        pipeline_name=pipeline_name,
+        destination=dest["type"],
+        dataset_name=dataset_name,
+    )
+
+    # Collecte toutes les ressources
+    resources = []
+    
+    for res_name, res_cfg in c["schema"].items():
+        col_spec = res_cfg.get("columns", {})
+        primary_key = res_cfg.get("primary_key", [])
+        
+        # Créer une fonction source pour cette ressource
+        def make_source_gen(resource_name, column_spec):
+            @dlt.resource(name=resource_name, primary_key=primary_key)
+            def source_gen():
+                for rec in fetch_records(c, column_spec):
+                    yield rec
+            return source_gen
+        
+        resources.append(make_source_gen(res_name, col_spec))
+
+    # Écriture selon write_disposition et merge_key  
+    write_disp = dest.get("write_disposition", "append")
+    if write_disp == "merge":
+        merge_key = dest.get("merge_key")
+        if not merge_key:
+            raise RuntimeError("merge_key requis si write_disposition=merge")
+        info = pipeline.run(
+            resources,
+            write_disposition="merge",
+            primary_key=merge_key,
+        )
+    else:
+        info = pipeline.run(
+            resources,
+            write_disposition=write_disp,
+        )
+    
+    print(f"Pipeline '{pipeline_name}' exécuté avec succès:")
+    print(f"Destination: {dest['type']}")
+    print(f"Dataset/Schema: {dataset_name}")
+    print(f"Tables traitées: {list(c['schema'].keys())}")
+    print(f"Info: {info}")
+
+if __name__ == "__main__":
+    main()

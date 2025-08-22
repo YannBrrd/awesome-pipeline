@@ -1,0 +1,26 @@
+# Validation des Data Contracts
+# Requirements pour datacontract-cli et validations custom
+
+# Data Contract CLI
+datacontract-cli
+
+# Support pour différents connecteurs (optionnel)
+# Installez seulement ceux que vous utilisez
+
+# PostgreSQL
+# psycopg2-binary
+
+# BigQuery  
+# google-cloud-bigquery
+
+# Snowflake
+# snowflake-connector-python
+
+# Databricks
+# databricks-sql-connector
+
+# Support YAML
+pyyaml
+
+# Validation custom (optionnel)
+pydantic>=2.6

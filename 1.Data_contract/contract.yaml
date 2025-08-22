@@ -1,0 +1,31 @@
+version: "1.0"
+pipeline:
+  name: ""  # Sera demandé interactivement
+source:
+  type: api
+  base_url: ""  # Sera demandé interactivement
+  items_path: items
+  auth:
+    kind: bearer_token
+    token_env: ""  # Sera demandé interactivement
+  incremental:
+    mode: none
+    pagination:
+      type: page
+      page_param: page
+      start: 1
+      limit_param: per_page
+      page_size: 100
+destination:
+  type: duckdb            # "duckdb" | "postgres" | "bigquery" | "snowflake" | "databricks"
+  schema: main            # requis sauf pour BigQuery
+  # dataset: raw          # requis pour BigQuery
+  write_disposition: append
+schema:
+  orders:
+    primary_key: [id]
+    columns:
+      id: {type: bigint, nullable: false}
+      status: {type: text, nullable: false, in_set: ["paid","refunded","pending"]}
+      amount: {type: decimal, nullable: false, min: 0}
+      updated_at: {type: timestamp, nullable: false}

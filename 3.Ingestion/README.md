@@ -1,39 +1,80 @@
-DLT ingestion generator (Databricks)
+# 3. Ingestion
 
-This folder contains a generator that reads a data contract and emits a dlt pipeline with expectations (not_null, unique, min/enum/pattern) targeting Databricks SQL Warehouse.
+Purpose
+- Generate and execute data ingestion pipelines from validated contracts.
+- Transform API sources into target destinations with DLT.
 
-Quickstart (PowerShell)
+## Components
 
-1) Install deps
-   
-  ```powershell
-  py -m pip install -r requirements.txt
-  ```
+### dlt-generator/
+**DLT script generator from data contracts**
 
-2) Validate contract
-   
-  ```powershell
-  py .\2.Validation\contract_validator.py .\1.Data_contract\olist_mini\contract.yaml
-  ```
+CLI that takes a validated YAML data contract as input, asks for missing fields interactively, then generates a complete DLT ingestion script.
 
-3) Generate Databricks pipeline code
-   
-  ```powershell
-  py .\3.Ingestion\generate_dlt_pipeline_databricks.py .\1.Data_contract\olist_mini\contract.yaml
-  ```
+#### Installation and quick usage
+```bash
+cd dlt-generator
+./install.sh
+# or
+make install
 
-4) Run pipeline (Databricks SQL Warehouse)
-   
-  ```powershell
-  $env:OLIST_DATA_DIR = "data/olist_mini"
-  $env:DLT_DATASET = "raw_olist"
-  $env:DATABRICKS_SERVER_HOSTNAME = "<workspace-host>"
-  $env:DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/<id>"
-  $env:DATABRICKS_ACCESS_TOKEN = "<token>"
-  py .\3.Ingestion\pipelines\contract_databricks_pipeline.py
-  ```
+# Generate a pipeline  
+python generate.py --contract ../../1.Data_contract/contract.yaml --out build
+# or
+./start.sh demo
+# or  
+make demo
+```
 
-Notes
-- The generated scripts read CSVs from data/olist_mini/<table>.csv. Use scripts/generate_olist_mini.py to create them.
-- Rejected rows are appended to data/olist_mini/rejects/<table>_rejects.csv for inspection.
-- For richer checks and data docs, pair this with Great Expectations in 5.GX_code.
+#### Features
+- **Sources**: HTTP API (GET) with Bearer Token/Basic auth
+- **Destinations**: DuckDB, PostgreSQL, BigQuery, Snowflake, Databricks  
+- **Expectations**: Nullable, in_set, min/max validation before load
+- **Pagination**: Support for page-based pagination
+- **Interactive CLI**: Asks questions for missing fields
+- **Jinja2 Templates**: Generates ingest.py, README.md, .env.example
+
+#### Generated file structure
+```
+build/
+├── ingest.py          # Executable DLT script
+├── README.md          # Pipeline documentation
+├── .env.example       # Environment variables
+└── contract.yaml      # Completed contract
+```
+
+See `dlt-generator/README.md` for complete documentation.
+
+## Inputs
+- Validated contracts from `../1.Data_contract/` (via `../2.Validation/`)
+
+## Outputs  
+- **Executable DLT scripts** (via dlt-generator/)
+- **Configured pipelines** for different destinations
+- **Generated documentation** for each pipeline
+
+## Flow
+1) Contracts validated by `2.Validation/`. 2) **DLT generation with dlt-generator/**. 3) Execute ingestion pipelines.
+
+## Integration in awesome-pipeline
+
+```
+1.Data_contract/     ← Source contracts + examples
+2.Validation/        ← Validation with Data Contract CLI  
+3.Ingestion/         ← YOU ARE HERE - DLT generation
+    └── dlt-generator/
+4.DDL_for_catalogs/  ← Destination schemas
+5.GX_code/           ← Data quality
+6.Data_processing/   ← Transformations
+7.Orchestrator/      ← Dagster workflows
+```
+
+## Legacy: Databricks pipeline generator
+
+The previous scripts read CSVs and generated Databricks-specific pipelines. This has been replaced by the more flexible dlt-generator supporting multiple destinations.
+
+For legacy support:
+- Generated scripts read CSVs from data/olist_mini/<table>.csv
+- Use scripts/generate_olist_mini.py to create test data
+- Rejected rows are appended to data/olist_mini/rejects/<table>_rejects.csv
+- For richer checks and data docs, pair this with Great Expectations in 5.GX_code
