@@ -68,13 +68,3 @@ See `dlt-generator/README.md` for complete documentation.
 6.Data_processing/   ← Transformations
 7.Orchestrator/      ← Dagster workflows
 ```
-
-## Legacy: Databricks pipeline generator
-
-The previous scripts read CSVs and generated Databricks-specific pipelines. This has been replaced by the more flexible dlt-generator supporting multiple destinations.
-
-For legacy support:
-- Generated scripts read CSVs from data/olist_mini/<table>.csv
-- Use scripts/generate_olist_mini.py to create test data
-- Rejected rows are appended to data/olist_mini/rejects/<table>_rejects.csv
-- For richer checks and data docs, pair this with Great Expectations in 5.GX_code

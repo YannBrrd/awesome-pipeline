@@ -1,139 +1,223 @@
-# a## Description
-
-## Project structure
-
-1. Data contract (`1.Data_contract/`)
-2. Validation & artifacts (`2.Validation/`)
-3. DLTHub Ingestion (`3.Ingestion/`)
-4. DDL for catalogs (`4.DDL_for_catalogs/`)
-5. Great Expectations (`5.GX_code/`)
-6. Data processing (`6.Data_processing/`)
-7. Dagster Orchestrator (`7.Orchestrator/`)
-8. Data Catalog (OpenMetadata) (`8.Data_catalog/`)
-
-## Typical workflow
-1) Generate a small synthetic dataset (Olist mini) and validate the contract
-2) Generate DDL, GX suites and dlt pipeline from the contract
-3) Load data into Databricks (SQL Warehouse) with dlt
-4) Orchestrate the step sequence with Dagster
-5) Launch OpenMetadata Data Catalog locally and configure ingestionsnstrates a complete "Data Trust by Design" value chain, from data contract definition to orchestration and catalog publication:
-- Define producer contracts (schema, quality, SLA, security)
-- Validate and compile these contracts to generate artifacts (JSON schemas, DDL, test suites)
-- Generate ingestion code (dlt) with expectations (not_null, unique, min/enum/regex)
-- Execute quality checks (Great Expectations) and cross-cutting checks
-- Publish schemas to warehouse/catalog
-- Orchestrate everything (Dagster)peline
-Automated Pipeline & Data Trust by Design
+# awesome-pipeline
+Data Pipeline Framework & Toolchain Generator
 
 ## Description
 
-Ce projet démontre une chaîne de valeur “Data Trust by Design” complète, de la définition d’un contrat de données jusqu’à l’orchestration et la mise à disposition dans un catalogue:
-- Définir des contrats producteurs (schéma, qualité, SLA, sécurité)
-- Valider et compiler ces contrats pour générer des artefacts (schémas JSON, DDL, suites de tests)
-- Générer le code d’ingestion (dlt) avec des attentes (not_null, unique, min/enum/regex)
-- Exécuter des contrôles de qualité (Great Expectations) et des checks transverses
-- Publier des schémas dans l’entrepôt/cataloque
-- Orchestrer le tout (Dagster)
+This project provides a **framework and toolchain for generating data pipelines** based on data contracts. The goal is not to generate pipelines directly, but to **create the tools that generate pipelines**, ensuring data integrity and consistency throughout the data ecosystem.
 
-## Structure du projet
+### Key Principles
+- **Data Contract-Driven**: All pipeline generation starts from standardized data contracts
+- **Generic & Extensible**: Framework supports multiple data sources and sinks
+- **Industry Standards**: Integrates with established tools (DLT, Great Expectations, Data Contract CLI)
+- **Cross-Platform**: Shell scripts work across different operating systems
+- **Tool Generator**: Creates tools to generate pipelines, not the pipelines themselves
 
-1. Data contract (`1.Data_contract/`)
-2. Validation & artefacts (`2.Validation/`)
-3. Ingestion DLTHub (`3.Ingestion/`)
-4. DDL pour catalogues (`4.DDL_for_catalogs/`)
-5. Great Expectations (`5.GX_code/`)
-6. Data processing (`6.Data_processing/`)
-7. Orchestrateur Dagster (`7.Orchestrator/`)
-8. Data Catalog (OpenMetadata) (`8.Data_catalog/`)
+### Supported Integrations
+- **Major Cloud Platforms**: BigQuery, Databricks, Snowflake, MS Fabric
+- **Data Sources**: HTTP APIs, databases, file systems (via DLTHub)
+- **Data Quality**: Great Expectations (GX) for comprehensive data validation
+- **Validation**: Data Contract CLI for contract compliance
+- **Orchestration**: Dagster for workflow management
+- **Catalog**: OpenMetadata for data discovery and lineage
 
-## Parcours type
-1) Générer un petit dataset synthétique (Olist mini) et valider le contrat
-2) Générer DDL, suites GX et pipeline dlt depuis le contrat
-3) Charger les données dans Databricks (SQL Warehouse) avec dlt
-4) Orchestrer l’enchaînement des étapes avec Dagster
-5) Lancer le Data Catalog OpenMetadata en local et configurer des ingestions
+## Framework Workflow
 
-## Quick start (PowerShell)
-- Install Python dependencies:
-  
-  ```powershell
-  py -m pip install -r requirements.txt
-  ```
+The awesome-pipeline framework follows a **6-step workflow** to transform data contracts into fully executable pipelines with comprehensive data quality and lineage:
 
-- Generate data + validate contract:
-  
-  ```powershell
-  py .\scripts\generate_olist_mini.py
-  py .\2.Validation\contract_validator.py .\1.Data_contract\olist_mini\contract.yaml
-  ```
+### 1. Provide your data contract
+Define your data schema, quality rules, and pipeline configuration in a standardized YAML contract format.
 
-- Generate DDL & GX suites via Data Contracts CLI + dlt pipeline:
-  
-  ```powershell
-  # Install CLI (once) – see official project documentation
-  # pipx install data-contract-cli
-  data-contract-cli ddl --dialect databricks --contract .\1.Data_contract\olist_mini\contract.yaml --out .\4.DDL_for_catalogs\ddl_cli
-  data-contract-cli gx --contract .\1.Data_contract\olist_mini\contract.yaml --out .\5.GX_code\suites_cli
-  py .\3.Ingestion\generate_dlt_pipeline_databricks.py .\1.Data_contract\olist_mini\contract.yaml
-  ```
+### 2. Validate using Data Contract CLI
+Ensure contract compliance and correctness using industry-standard Data Contract CLI validation.
 
-- Execute ingestion (Databricks SQL Warehouse):
-  
-  ```powershell
-  $env:OLIST_DATA_DIR = "data/olist_mini"
-  $env:DLT_DATASET = "raw_olist"
-  $env:DATABRICKS_SERVER_HOSTNAME = "<workspace-host>"
-  $env:DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/<id>"
-  $env:DATABRICKS_ACCESS_TOKEN = "<token>"
-  py .\3.Ingestion\pipelines\contract_databricks_pipeline.py
-  ```
-- Dagster Orchestrator (UI):
-  
-  ```powershell
-  dagster dev -m 7.Orchestrator.orchestrator
-  ```
+### 3. Generate DLT script using Pydantic
+Create executable DLT ingestion scripts with Pydantic expectation injection for runtime data validation.
 
-- OpenMetadata Data Catalog:
-  
-  ```powershell
-  cd .\8.Data_catalog; cp .env.example .env; docker compose up -d; start http://localhost:8585
-  ```
+### 4. Generate DDL for data catalogs using Data Contract CLI
+Produce database schemas and catalog definitions compatible with major cloud platforms.
 
-## Links
-- Data Contracts: https://datacontract.com/
-- DLTHub: https://dlthub.com/
-- Great Expectations: https://greatexpectations.io/
-- Dagster: https://dagster.io/
-- OpenMetadata: https://open-metadata.org/
+### 5. Generate GX code to integrate data quality checks into the pipeline
+Create comprehensive Great Expectations suites for automated data quality monitoring.
 
-## Flow diagram (Mermaid)
+### 6. Execute the pipeline
+Run the complete data pipeline with built-in quality checks, expectations, and lineage tracking.
 
-```mermaid
-flowchart TD
-  A["Data Contract<br/>(1.Data_contract)"] --> B["Validation & Compilation<br/>(2.Validation)"]
+## Project Structure
 
-  B --> C["DDL (Databricks UC) via CLI<br/>(4.DDL_for_catalogs)"]
-  B --> D["GX Suites via CLI<br/>(5.GX_code)"]
-  B --> E["Generated dlt code (Databricks)<br/>(3.Ingestion)"]
+| Directory | Purpose | Key Components |
+|-----------|---------|----------------|
+| `1.Data_contract/` | Contract definitions & examples | YAML contracts, templates, samples |
+| `2.Validation/` | Contract validation tooling | Data Contract CLI integration, shell scripts |
+| `3.Ingestion/` | Pipeline generation tools | DLT generator, Pydantic models, Jinja2 templates |
+| `4.DDL_for_catalogs/` | Schema generation | DDL scripts for warehouse catalogs |
+| `5.GX_code/` | Data quality automation | Great Expectations suite generation |
+| `6.Data_processing/` | Transformation frameworks | dbt/Spark/SQL transformation tools |
+| `7.Orchestrator/` | Workflow automation | Dagster orchestration patterns |
+| `8.Data_catalog/` | Metadata management | OpenMetadata local deployment |
 
-  subgraph ING[Ingestion]
-    direction LR
-    E --> F2["Databricks Ingestion"]
-  end
+## Quick Start: End-to-End Workflow
 
-  F2 --> G
+Follow the complete 6-step workflow to transform a data contract into an executable pipeline:
 
-  C --> H["Unity Catalog (Databricks)"]
-  G --> I["OpenMetadata (Data Catalog)<br/>(8.Data_catalog)"]
-  H --> I
-
-  subgraph ORCH["Orchestrator (Dagster)"]
-    direction TB
-    O1 -.-> A
-    O2 -.-> B
-    O3 -.-> C
-    O4 -.-> D
-    O5 -.-> E
-    O7 -.-> F2
-  end
+### Step 1: Provide your data contract
+```bash
+# Use existing example or create your own
+cp 1.Data_contract/contract.yaml 1.Data_contract/my-pipeline.yaml
+# Edit the contract with your specifications
 ```
+
+### Step 2: Validate using Data Contract CLI
+```bash
+cd 2.Validation
+./validate.sh ../1.Data_contract/my-pipeline.yaml
+```
+
+### Step 3: Generate DLT script using Pydantic
+```bash
+cd ../3.Ingestion/dlt-generator
+python generate.py --contract ../../1.Data_contract/my-pipeline.yaml --out my-pipeline
+```
+
+### Step 4: Generate DDL for data catalogs using Data Contract CLI
+```bash
+cd ../../4.DDL_for_catalogs
+datacontract ddl --contract ../1.Data_contract/my-pipeline.yaml --out ./generated-ddl
+```
+
+### Step 5: Generate GX code to integrate data quality checks
+```bash
+cd ../5.GX_code
+datacontract gx --contract ../1.Data_contract/my-pipeline.yaml --out ./generated-gx
+```
+
+### Step 6: Execute the pipeline
+```bash
+cd ../3.Ingestion/dlt-generator/my-pipeline
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your credentials and settings
+# Run the complete pipeline
+python ingest.py
+```
+
+## Framework Capabilities
+
+### Data Contract-Driven Architecture
+- **Standardized Contracts**: YAML-based data contracts define the entire pipeline specification
+- **Contract Validation**: Industry-standard Data Contract CLI ensures compliance and consistency
+- **Single Source of Truth**: All pipeline artifacts generated from the same contract definition
+
+### DLTHub Integration with Pydantic Expectations
+- **Multiple Sources**: HTTP APIs, databases, file systems via DLTHub's extensive connector library
+- **Expectation Injection**: Pydantic validations automatically embedded in generated DLT scripts
+- **Runtime Validation**: Data quality checks executed during ingestion for immediate feedback
+
+### Multi-Platform DDL Generation
+- **Cloud-Native**: Support for BigQuery, Databricks, Snowflake, MS Fabric
+- **Catalog Integration**: Auto-generated schemas compatible with major data catalogs
+- **Data Contract CLI**: Leverages official tooling for consistent DDL generation
+
+### Comprehensive Data Quality
+- **Great Expectations**: Automated GX suite generation from contract specifications
+- **Quality Gates**: Built-in data quality checks integrated into pipeline execution
+- **Data Contract CLI GX**: Official tool integration for standard quality patterns
+
+### Cross-Platform Tooling
+- **Shell Scripts**: Bash-based automation for Linux/macOS/Windows
+- **No PowerShell Dependencies**: Pure shell for maximum compatibility
+- **Makefile Support**: Consistent build targets across environments
+
+## Example Workflow
+
+```bash
+# Complete 6-step workflow example
+# Prerequisites: pip install -r requirements.txt
+
+# Step 1: Provide your data contract (using existing example)
+cd 1.Data_contract
+ls -la  # See available contract examples
+
+# Step 2: Validate using Data Contract CLI
+cd ../2.Validation
+./validate.sh ../1.Data_contract/contract.yaml
+
+# Step 3: Generate DLT script using Pydantic
+cd ../3.Ingestion/dlt-generator
+python generate.py --contract ../../1.Data_contract/contract.yaml --out my-pipeline
+
+# Step 4: Generate DDL for data catalogs using Data Contract CLI
+cd ../../4.DDL_for_catalogs
+datacontract ddl --contract ../1.Data_contract/contract.yaml --out ./ddl-output
+
+# Step 5: Generate GX code to integrate data quality checks
+cd ../5.GX_code
+datacontract gx --contract ../1.Data_contract/contract.yaml --out ./gx-output
+
+# Step 6: Execute the pipeline
+cd ../3.Ingestion/dlt-generator/my-pipeline
+cp .env.example .env
+# Edit .env with your credentials and configuration
+python ingest.py
+```
+
+## Demo Example: CSV + DuckDB
+
+The framework includes a **complete working example** demonstrating the full 6-step workflow:
+
+### Sample Dataset
+- **Synthetic Data**: `scripts/generate_olist_mini.py` creates realistic e-commerce CSV data
+- **Multiple Tables**: Orders, customers, products with realistic relationships and constraints
+- **Quality Issues**: Intentional data quality issues to demonstrate validation capabilities
+
+### Complete Workflow Demo
+1. **Contract**: `1.Data_contract/olist_mini/contract.yaml` - Comprehensive contract with schema and quality rules
+2. **Validation**: Data Contract CLI validation ensures contract compliance
+3. **DLT Generation**: Creates executable Python script with Pydantic expectations
+4. **DDL Generation**: Produces DuckDB-compatible schema definitions
+5. **GX Generation**: Creates Great Expectations suites for data quality monitoring
+6. **Pipeline Execution**: Loads CSV data into DuckDB with full validation and quality checks
+
+### Data Catalog Integration
+- **OpenMetadata**: Local deployment for data discovery and lineage visualization
+- **Schema Registration**: Auto-generated DDL can be applied to catalog databases
+- **Lineage Tracking**: Full data lineage from source CSV through transformation to final tables
+
+## Framework Extensions
+
+### Adding New Sources
+- Extend `3.Ingestion/dlt-generator/contract_model.py` with new source types
+- Add Jinja2 templates for source-specific code generation
+- Update validation schemas in Pydantic models
+
+### Adding New Destinations
+- Extend destination types in contract model
+- Add destination-specific DLT configuration templates
+- Update environment variable handling
+
+### Custom Quality Rules
+- Extend expectation types in contract schema
+- Add custom validation logic in DLT templates
+- Generate corresponding Great Expectations suites
+
+## Related Projects
+
+- **Data Contracts**: https://datacontract.com/
+- **DLTHub**: https://dlthub.com/
+- **Great Expectations**: https://greatexpectations.io/
+- **Dagster**: https://dagster.io/
+- **OpenMetadata**: https://open-metadata.org/
+
+## Framework Goals & Achievements
+
+✅ **Generic Framework**: Support for BigQuery, Databricks, Snowflake, MS Fabric  
+✅ **Contract-Driven**: All artifacts generated from standardized data contracts  
+✅ **DLTHub Integration**: Sourcing through DLT with Pydantic expectation injection  
+✅ **Data Contract CLI**: Industry-standard validation and artifact generation  
+✅ **Great Expectations**: Automated GX code generation for data quality  
+✅ **Cross-Platform**: Shell-based automation works across operating systems  
+✅ **Tool Generator**: Creates tools to generate pipelines, not pipelines directly  
+✅ **Minimal Friction**: Seamless experience for data engineers  
+✅ **Full Lineage**: Complete data lineage tracking from source to destination  
+✅ **Quality First**: Built-in data quality rules and monitoring  
+
+**Mission**: Provide a seamless experience for data engineers to define, validate, and execute their data pipelines with minimal friction, including DQ rules and full lineage.
