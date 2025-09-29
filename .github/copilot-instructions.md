@@ -1,6 +1,6 @@
 We are working on a data pipeline framework based on data contracts. This framework aims to standardize data exchange between different components of the system, ensuring data integrity and consistency throughout the pipeline.
 
-Generated framework should be generic, and allowing multiple data sources and sinks to be easily integrated into the pipeline including major players like BigQuery, Databricks, Snowflake and MS Fabric. DuckDB will be used as a testing platform, so include it i
+Generated framework should be generic, and allowing multiple data sources and sinks to be easily integrated into the pipeline including major players like BigQuery, Databricks, Snowflake and MS Fabric. DuckDB will be used as a testing platform, so include it.
 
 Sourcing is done through DLTHub. We should inject 'expects' in DLT script when generating using Pydantic.
 
