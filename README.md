@@ -9,12 +9,12 @@ Data Pipeline Framework & Toolchain Generator
 > - **Recommended use:** evaluation, prototyping, or contributing — **not for critical workloads**
 > 
 > Quick actions:
-> - Run locally: `./scripts/install.sh`
-> - Validate contracts: `./validate.sh`
+> - Install validation tooling: `cd src/validation && ./install.sh`
+> - Run the demo workflow: `cd demo && ./test-integration.sh`
 > - Report problems: open an issue and submit a PR with fixes
 > 
 > Tips:
-> - Review examples in `1.Data_contract/` before generating artifacts
+> - Review examples in `demo/contracts/` before generating artifacts
 > - Always run Step 2 (validation) after editing contracts
 - **Tool Generator**: Creates tools to generate pipelines, not the pipelines themselves
 
@@ -55,14 +55,16 @@ Run the complete data ingestion pipeline with built-in quality checks, expectati
 
 | Directory | Purpose | Key Components |
 |-----------|---------|----------------|
-| `1.Data_contract/` | Contract definitions & examples | YAML contracts, templates, samples |
-| `2.Validation/` | Contract validation tooling | Data Contract CLI integration, shell scripts |
-| `3.Ingestion/` | Pipeline generation tools | DLT generator, Pydantic models, Jinja2 templates |
-| `4.DDL_for_catalogs/` | Schema generation | DDL scripts for warehouse catalogs |
-| `5.GX_code/` | Data quality automation | Great Expectations suite generation |
-| `6.Data_processing/` | DQ Transformation Framework | dbt/SQL/Spark/Python transformations with enforced DQ checks |
-| `7.Orchestrator/` | Workflow automation | Dagster orchestration patterns |
-| `8.Data_catalog/` | Metadata management | OpenMetadata local deployment |
+| `src/validation/` | Contract validation tooling | Data Contract CLI integration, shell scripts |
+| `src/ingestion/` | Pipeline generation tools | DLT generator, Pydantic models, Jinja2 templates |
+| `src/ddl_generation/` | Schema generation | DDL scripts for warehouse catalogs |
+| `src/gx_generation/` | Data quality automation | Great Expectations suite generation |
+| `src/data_processing/` | DQ Transformation Framework | dbt/SQL/Spark/Python transformations with enforced DQ checks |
+| `src/orchestrator/` | Workflow automation | Dagster orchestration patterns |
+| `demo/contracts/` | Contract definitions & examples | YAML contracts, templates, samples |
+| `demo/data_catalog/` | Metadata management | OpenMetadata local deployment |
+| `demo/scripts/` | Demo utilities | Data generators, helpers |
+| `demo/test-integration.sh` | End-to-end smoke test | Validates the full toolchain |
 
 ## Quick Start: End-to-End Workflow
 
@@ -71,43 +73,44 @@ Follow the complete 7-step workflow to transform a data contract into an executa
 ### Step 1: Provide your data contract
 ```bash
 # Use existing example or create your own
-cp 1.Data_contract/contract.yaml 1.Data_contract/my-pipeline.yaml
+cp demo/contracts/contract.yaml demo/contracts/my-pipeline.yaml
 # Edit the contract with your specifications
 ```
 
 ### Step 2: Validate using Data Contract CLI
 ```bash
-cd 2.Validation
-./validate.sh ../1.Data_contract/my-pipeline.yaml
+cd src/validation
+./validate.sh ../../demo/contracts/my-pipeline.yaml
 ```
 
 ### Step 3: Generate DLT script using Pydantic
 ```bash
-cd ../3.Ingestion/dlt-generator
-python generate.py --contract ../../1.Data_contract/my-pipeline.yaml --out my-pipeline
+cd ../ingestion/dlt-generator
+python generate.py --contract ../../../demo/contracts/my-pipeline.yaml --out my-pipeline
 ```
 
 ### Step 4: Generate DDL for data catalogs using Data Contract CLI
 ```bash
-cd ../../4.DDL_for_catalogs
-./generate-ddl.sh --contract ../1.Data_contract/my-pipeline.yaml --platform duckdb
+cd ../../ddl_generation
+./generate-ddl.sh --contract ../../demo/contracts/my-pipeline.yaml --platform duckdb
 ```
 
 ### Step 5: Generate GX code to integrate data quality checks
 ```bash
-cd ../5.GX_code
-./generate-gx-suites.sh --contract ../1.Data_contract/my-pipeline.yaml
+cd ../gx_generation
+./generate-gx-suites.sh --contract ../../demo/contracts/my-pipeline.yaml
 ```
 
 ### Step 6: Execute data transformations with enforced DQ checks
 ```bash
-cd ../6.Data_processing/framework
+cd ../data_processing/framework
 # Install the DQ transformation framework
 ./scripts/install.sh
 
 # Configure your transformation
 cp templates/config.yaml config/my-transformation.yaml
 # Edit config/my-transformation.yaml with your transformation logic
+# Update `data_quality.gx_config.contract_path` to point to your contract (e.g. ../../../../demo/contracts/my-pipeline.yaml)
 
 # Execute transformation with automatic DQ enforcement
 python examples/dbt_example.py  # or sql_example.py, python_example.py
@@ -115,7 +118,7 @@ python examples/dbt_example.py  # or sql_example.py, python_example.py
 
 ### Step 7: Execute the ingestion pipeline
 ```bash
-cd ../../3.Ingestion/dlt-generator/my-pipeline
+cd ../../ingestion/dlt-generator/my-pipeline
 # Configure environment variables
 cp .env.example .env
 # Edit .env with your credentials and settings
@@ -164,37 +167,41 @@ python ingest.py
 # Prerequisites: pip install -r requirements.txt
 
 # Step 1: Provide your data contract (using existing example)
-cd 1.Data_contract
-ls -la  # See available contract examples
+cp demo/contracts/contract.yaml demo/contracts/my-pipeline.yaml
+ls demo/contracts  # See available contract examples
 
 # Step 2: Validate using Data Contract CLI
-cd ../2.Validation
-./validate.sh ../1.Data_contract/contract.yaml
+cd src/validation
+./install.sh
+./validate.sh ../../demo/contracts/contract.yaml
 
 # Step 3: Generate DLT script using Pydantic
-cd ../3.Ingestion/dlt-generator
-python generate.py --contract ../../1.Data_contract/contract.yaml --out my-pipeline
+cd ../ingestion/dlt-generator
+python generate.py --contract ../../../demo/contracts/contract.yaml --out my-pipeline
 
 # Step 4: Generate DDL for data catalogs using Data Contract CLI
-cd ../../4.DDL_for_catalogs
-./generate-ddl.sh --contract ../1.Data_contract/contract.yaml --platform duckdb
+cd ../../ddl_generation
+./generate-ddl.sh --contract ../../demo/contracts/contract.yaml --platform duckdb
 
 # Step 5: Generate GX code to integrate data quality checks
-cd ../5.GX_code
-./generate-gx-suites.sh --contract ../1.Data_contract/contract.yaml
+cd ../gx_generation
+./generate-gx-suites.sh --contract ../../demo/contracts/contract.yaml
 
 # Step 6: Execute data transformations with enforced DQ checks
-cd ../6.Data_processing/framework
+cd ../data_processing/framework
 ./scripts/install.sh
 cp templates/config.yaml config/my-transformation.yaml
 # Edit config/my-transformation.yaml with your transformation specifications
 python examples/sql_example.py  # Execute transformation with DQ enforcement
 
 # Step 7: Execute the ingestion pipeline
-cd ../../3.Ingestion/dlt-generator/my-pipeline
+cd ../../ingestion/dlt-generator/my-pipeline
 cp .env.example .env
 # Edit .env with your credentials and configuration
 python ingest.py
+
+# Return to repository root
+cd ../../../..
 ```
 
 ## Data Processing Phase (Step 6) - Detailed Setup
@@ -214,13 +221,15 @@ Before starting Step 6, ensure you have completed:
 
 #### 1. Install the DQ Transformation Framework
 ```bash
-cd 6.Data_processing/framework
+cd src/data_processing/framework
 
 # For Linux/macOS/WSL
 chmod +x scripts/install.sh
 ./scripts/install.sh
 
 # For Windows PowerShell  
+# For Windows PowerShell  
+Set-Location src\data_processing\framework
 .\scripts\install.ps1
 ```
 
@@ -257,8 +266,8 @@ data_quality:
     fail_on_error: true
   gx_config:
     # Uses GX suites from Step 5
-    suites_path: "../../5.GX_code/suites_cli"
-    contract_path: "../../1.Data_contract/contract.yaml"
+    suites_path: "../../gx_generation/suites_cli"
+    contract_path: "../../../demo/contracts/contract.yaml"
 
 engines:
   sql:
@@ -349,12 +358,12 @@ output/
 The framework includes a **complete working example** demonstrating the full 6-step workflow:
 
 ### Sample Dataset
-- **Synthetic Data**: `scripts/generate_olist_mini.py` creates realistic e-commerce CSV data
+- **Synthetic Data**: `demo/scripts/generate_olist_mini.py` creates realistic e-commerce CSV data
 - **Multiple Tables**: Orders, customers, products with realistic relationships and constraints
 - **Quality Issues**: Intentional data quality issues to demonstrate validation capabilities
 
 ### Complete Workflow Demo
-1. **Contract**: `1.Data_contract/contract.yaml` - Comprehensive contract with schema and quality rules
+1. **Contract**: `demo/contracts/contract.yaml` - Comprehensive contract with schema and quality rules
 2. **Validation**: Data Contract CLI validation ensures contract compliance
 3. **DLT Generation**: Creates executable Python script with Pydantic expectations
 4. **DDL Generation**: Produces DuckDB-compatible schema definitions
@@ -370,7 +379,7 @@ The framework includes a **complete working example** demonstrating the full 6-s
 ## Framework Extensions
 
 ### Adding New Sources
-- Extend `3.Ingestion/dlt-generator/contract_model.py` with new source types
+- Extend `src/ingestion/dlt-generator/contract_model.py` with new source types
 - Add Jinja2 templates for source-specific code generation
 - Update validation schemas in Pydantic models
 
